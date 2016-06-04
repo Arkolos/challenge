@@ -11,16 +11,20 @@ def encodeJson(src: AnyRef): JValue = {
     Extraction.decompose(src)
 }
 
+
+//val join_on = "listings.manufacturer LIKE CONCAT(LOWER(products.manufacturer), '%') AND listings.title REGEXP products.model_formated "
+val join_on = "listings.manufacturer_formated = products.manufacturer AND listings.title REGEXP products.model_formated"
+
 def countNotMatchedListings():Long = 
 {
-  val sqlRequest = "SELECT product_name,listings.* FROM products right join listings on listings.manufacturer = products.manufacturer AND listings.title REGEXP products.model_formated WHERE product_name IS NULL"
+  val sqlRequest = "SELECT product_name,listings.* FROM products right join listings on "+ join_on +" WHERE product_name IS NULL"
   sqlContext.sql(sqlRequest).count
 }
 
 def countMatchedTwiceListings():Long =
 {
-  val sqlRequest = "SELECT count(*) AS nb, product_name,listings.* FROM products  join listings on listings.manufacturer = products.manufacturer and  listings.title REGEXP products.model group by listings.id having nb > 1"
-  sqlContext.sql(sqlRequest).count
+  val sqlRequest_dual = "SELECT count(DISTINCT products.product_name, products.manufacturer, products.model, products.family) AS nb, listings.title, listings.manufacturer FROM products  join listings on "+ join_on +" group by listings.title,listings.manufacturer having nb > 1"
+  sqlContext.sql(sqlRequest_dual).count
 }
 
 case class Listing(currency:String,manufacturer:String,price:String,title:String)
@@ -39,22 +43,46 @@ class Listing(currency_p:String,manufacturer_p:String,price_p:Float,title_p:Stri
 def getResultSQL():org.apache.spark.sql.DataFrame =
 {
   val formate_model: (String => String) = (entry: String) =>  " " + entry.replaceAll("[-_ ]", "[-_ ]?") + " " //eg : "QV-5000SX" ->  "QV[-_ ]?5000SX"
-  
-  val sqlfunc = udf(formate_model)
+  val formate_manufacturer_listings: (String => String) = _.split(" ")(0)
+
+  val sqlfunc_model = udf(formate_model)
+  val sqlfunc_manufacturer = udf(formate_manufacturer_listings)
 
   val products_fromfile = sqlContext.read.json("/Users/Arkolos/Dropbox2/Dropbox/Prog/sparc/challenge_sortable/products.txt")
-  val products =  products_fromfile.withColumn("model_formated", sqlfunc(col("model")))
+  val products =  products_fromfile.withColumn("model_formated", sqlfunc_model(col("model")))
   products.registerTempTable("products")
 
-  val listings = sqlContext.read.json("/Users/Arkolos/Dropbox2/Dropbox/Prog/sparc/challenge_sortable/listings.txt")
+  val listings_fromfile = sqlContext.read.json("/Users/Arkolos/Dropbox2/Dropbox/Prog/sparc/challenge_sortable/listings.txt")
+  val listings = listings_fromfile.withColumn("manufacturer_formated", sqlfunc_manufacturer(col("manufacturer")))
   listings.registerTempTable("listings")
 
-  val request = "SELECT product_name,listings.* FROM products  join listings on listings.manufacturer = products.manufacturer AND listings.title REGEXP products.model_formated"
+  val request = "SELECT product_name,listings.* FROM products  join listings on "+ join_on
 
   sqlContext.sql(request)
 
 }
   val result_sql = getResultSQL()
+
+println ("no matched "+ countNotMatchedListings())
+println ("matched twice "+ countMatchedTwiceListings())
+
+
+//maybe products.manufacturer .+ useless
+//val sqlRequest_dual = "SELECT products.product_name, products.manufacturer, products.model, products.family, listings.title, listings.manufacturer FROM products  join listings on "+ join_on +" "
+ 
+//sqlContext.sql(sqlRequest_dual).write.format("com.databricks.spark.csv").option("header", "true").save("/Users/Arkolos/Dropbox2/Dropbox/Prog/sparc/challenge_sortable/matchtwice.csv")
+
+  /*
+  val sqlRequest = "SELECT product_name,listings.* FROM products right join listings on "+ join_on +" WHERE product_name IS NULL"
+  
+  val result_sql_nofound = sqlContext.sql(sqlRequest)
+
+  result_sql_nofound.write.format("com.databricks.spark.csv").option("header", "true").save("/Users/Arkolos/Dropbox2/Dropbox/Prog/sparc/challenge_sortable/nomatched.csv")
+
+  */
+  //result_sql.write.format("com.databricks.spark.csv").save("/Users/Arkolos/Dropbox2/Dropbox/Prog/sparc/challenge_sortable/nomatched.csv")
+
+
   val results_grouped = result_sql.map(p => (p(0).asInstanceOf[String] , (Listing(p(1).asInstanceOf[String], p(2).asInstanceOf[String], p(3).asInstanceOf[String], p(4).asInstanceOf[String])))).groupByKey()
 
 //val results_json =  results_grouped.map(p => compact(render(encodeJson( (("product_name", p._1 ), ("listings", p._2))  ))))
