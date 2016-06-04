@@ -13,7 +13,7 @@ def encodeJson(src: AnyRef): JValue = {
 
 
 //val join_on = "listings.manufacturer LIKE CONCAT(LOWER(products.manufacturer), '%') AND listings.title REGEXP products.model_formated "
-val join_on = "listings.manufacturer_formated = LOWER(products.manufacturer) AND listings.title REGEXP products.model_formated"
+val join_on = "listings.manufacturer_formated = LOWER(products.manufacturer) AND LOWER(listings.title) REGEXP products.model_formated"
 
 def countNotMatchedListings():Long = 
 {
@@ -42,10 +42,15 @@ class Listing(currency_p:String,manufacturer_p:String,price_p:Float,title_p:Stri
 
 def initSql() = 
 {
-  val formate_model: (String => String) = (entry: String) =>  
+  val formate_model: ((String, String) => String) = (model: String, family:String) =>  
   {
     val bound = "[^-_A-z0-9]"
-    bound + entry.replaceAll("[-_ ]", "[-_ ]?") + bound //eg : "QV-5000SX" ->  "QV[-_ ]?5000SX"
+    val regexp_basis = if (family == "ELPH" || family == "IXUS") family + " " + model else model
+
+    val regexp = regexp_basis.toLowerCase().replaceAll("([A-z])([0-9])", "$1-$2") // eg : "PLOP23" -> "PLOP-23"
+                                      .replaceAll("([0-9])([A-z])", "$1-$2")
+                                      .replaceAll("[-_ ]", "[-_ ]?")//eg : "QV-5000SX" ->  "QV[-_ ]?5000SX"
+    bound + regexp + bound
   }
   val formate_manufacturer_listings: (String => String) = (entry: String) =>
   {
@@ -60,7 +65,7 @@ def initSql() =
   val sqlfunc_manufacturer = udf(formate_manufacturer_listings)
 
   val products_fromfile = sqlContext.read.json("/Users/Arkolos/Dropbox2/Dropbox/Prog/sparc/challenge_sortable/products.txt")
-  val products =  products_fromfile.withColumn("model_formated", sqlfunc_model(col("model")))
+  val products =  products_fromfile.withColumn("model_formated", sqlfunc_model(col("model"), col("family")))
   products.registerTempTable("products")
 
   val listings_fromfile = sqlContext.read.json("/Users/Arkolos/Dropbox2/Dropbox/Prog/sparc/challenge_sortable/listings.txt")
@@ -82,7 +87,7 @@ println ("matched twice "+ countMatchedTwiceListings())
 
   val result_sql = getResultSQL()
 
-/*
+
 val sqlRequest_dual = "SELECT count(DISTINCT products.product_name, products.manufacturer, products.model, products.family) AS nb, listings.title, listings.manufacturer FROM products  join listings on "+ join_on +" group by listings.title,listings.manufacturer having nb > 1"
   val result = sqlContext.sql(sqlRequest_dual)
   result.write.format("com.databricks.spark.csv").option("header", "true").save("/Users/Arkolos/Dropbox2/Dropbox/Prog/sparc/challenge_sortable/matchedtwice5.csv")
@@ -92,7 +97,7 @@ val sqlRequest_dual = "SELECT count(DISTINCT products.product_name, products.man
 val sqlRequest_dual = "SELECT products.product_name, products.manufacturer, products.model, products.family, listings.title, listings.manufacturer FROM products  join listings on "+ join_on +" "
  
 sqlContext.sql(sqlRequest_dual).write.format("com.databricks.spark.csv").option("header", "true").save("/Users/Arkolos/Dropbox2/Dropbox/Prog/sparc/challenge_sortable/matchjoin.csv")
-*/
+
   /*
   val sqlRequest = "SELECT product_name,listings.* FROM products right join listings on "+ join_on +" WHERE product_name IS NULL"
   
