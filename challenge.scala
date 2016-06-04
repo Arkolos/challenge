@@ -13,12 +13,12 @@ def encodeJson(src: AnyRef): JValue = {
 
 
 //val join_on = "listings.manufacturer LIKE CONCAT(LOWER(products.manufacturer), '%') AND listings.title REGEXP products.model_formated "
-val join_on = "listings.manufacturer_formated = products.manufacturer AND listings.title REGEXP products.model_formated"
+val join_on = "listings.manufacturer_formated = LOWER(products.manufacturer) AND listings.title REGEXP products.model_formated"
 
 def countNotMatchedListings():Long = 
 {
-  val sqlRequest = "SELECT product_name,listings.* FROM products right join listings on "+ join_on +" WHERE product_name IS NULL"
-  sqlContext.sql(sqlRequest).count
+  val sqlRequest_notMatched = "SELECT product_name,listings.* FROM products right join listings on "+ join_on +" WHERE product_name IS NULL"
+  sqlContext.sql(sqlRequest_notMatched).count
 }
 
 def countMatchedTwiceListings():Long =
@@ -40,10 +40,21 @@ class Listing(currency_p:String,manufacturer_p:String,price_p:Float,title_p:Stri
   //override def toString(): String = this.toJSON()
 }*/
 
-def getResultSQL():org.apache.spark.sql.DataFrame =
+def initSql() = 
 {
-  val formate_model: (String => String) = (entry: String) =>  " " + entry.replaceAll("[-_ ]", "[-_ ]?") + " " //eg : "QV-5000SX" ->  "QV[-_ ]?5000SX"
-  val formate_manufacturer_listings: (String => String) = _.split(" ")(0)
+  val formate_model: (String => String) = (entry: String) =>  
+  {
+    val bound = "[^-_A-z0-9]"
+    bound + entry.replaceAll("[-_ ]", "[-_ ]?") + bound //eg : "QV-5000SX" ->  "QV[-_ ]?5000SX"
+  }
+  val formate_manufacturer_listings: (String => String) = (entry: String) =>
+  {
+    val sp = entry.split(" ")
+    if (sp.length >= 2 && sp(1).toLowerCase() == "kodak") { "kodak" }
+    else if (sp(0).toLowerCase() == "fuji") { "fujifilm"}
+    else sp(0).toLowerCase()
+    // Other transformation could be opered, like "GE" => "General Electric" but we don't care since there is no products from this manufacturer
+  }
 
   val sqlfunc_model = udf(formate_model)
   val sqlfunc_manufacturer = udf(formate_manufacturer_listings)
@@ -55,23 +66,33 @@ def getResultSQL():org.apache.spark.sql.DataFrame =
   val listings_fromfile = sqlContext.read.json("/Users/Arkolos/Dropbox2/Dropbox/Prog/sparc/challenge_sortable/listings.txt")
   val listings = listings_fromfile.withColumn("manufacturer_formated", sqlfunc_manufacturer(col("manufacturer")))
   listings.registerTempTable("listings")
+}
 
+def getResultSQL():org.apache.spark.sql.DataFrame =
+{
+  
   val request = "SELECT product_name,listings.* FROM products  join listings on "+ join_on
 
   sqlContext.sql(request)
 
 }
-  val result_sql = getResultSQL()
-
+initSql()
 println ("no matched "+ countNotMatchedListings())
 println ("matched twice "+ countMatchedTwiceListings())
 
+  val result_sql = getResultSQL()
+
+/*
+val sqlRequest_dual = "SELECT count(DISTINCT products.product_name, products.manufacturer, products.model, products.family) AS nb, listings.title, listings.manufacturer FROM products  join listings on "+ join_on +" group by listings.title,listings.manufacturer having nb > 1"
+  val result = sqlContext.sql(sqlRequest_dual)
+  result.write.format("com.databricks.spark.csv").option("header", "true").save("/Users/Arkolos/Dropbox2/Dropbox/Prog/sparc/challenge_sortable/matchedtwice5.csv")
 
 //maybe products.manufacturer .+ useless
-//val sqlRequest_dual = "SELECT products.product_name, products.manufacturer, products.model, products.family, listings.title, listings.manufacturer FROM products  join listings on "+ join_on +" "
- 
-//sqlContext.sql(sqlRequest_dual).write.format("com.databricks.spark.csv").option("header", "true").save("/Users/Arkolos/Dropbox2/Dropbox/Prog/sparc/challenge_sortable/matchtwice.csv")
 
+val sqlRequest_dual = "SELECT products.product_name, products.manufacturer, products.model, products.family, listings.title, listings.manufacturer FROM products  join listings on "+ join_on +" "
+ 
+sqlContext.sql(sqlRequest_dual).write.format("com.databricks.spark.csv").option("header", "true").save("/Users/Arkolos/Dropbox2/Dropbox/Prog/sparc/challenge_sortable/matchjoin.csv")
+*/
   /*
   val sqlRequest = "SELECT product_name,listings.* FROM products right join listings on "+ join_on +" WHERE product_name IS NULL"
   
