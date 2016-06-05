@@ -27,7 +27,7 @@ Then, a jointure is made between the "products" and "listings" table using this 
 SELECT product_name,listings.* FROM products
 join listings on listings.manufacturer_formated = LOWER(products.manufacturer) AND LOWER(listings.title) REGEXP products.regexp_searched
 
-
+Then, the result are grouped according to the "product_name". Some different product_name seems correspond to the same product (see the "Note" part bellow) so they are also regrouped.
 
 
 Results :
@@ -44,5 +44,20 @@ Note :
 ------
 
 Some products seems to be the same :
-Canon_EOS_550D , Canon_EOS_Rebel_T2i and EOS Kiss X4 ( http://www.dpreview.com/products/canon/slrs/canon_eos550d )
+Canon_EOS_550D , Canon_EOS_Rebel_T2i and Canon_Kiss_X4 ( http://www.dpreview.com/products/canon/slrs/canon_eos550d )
+-> we choose Canon_EOS_550D
+
+Canon_EOS_500D,Canon_EOS_Rebel_T1i and ( http://www.dpreview.com/reviews/canoneos500d )
+-> we choose Canon_EOS_500D
+
 Samsung-SL202 and Samsung_SL202
+-> we choose Samsung_SL202
+
+
+Idea of improvements
+====================
+
+We could replace the sql requests by a lower-level treatment. It could :
+- improve time performances by controling better what is really done
+- allow more flexibility to add new features (for now it is not possible to set priority for products or to do treatment not supported by sql)
+
