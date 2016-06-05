@@ -34,6 +34,8 @@ Results :
 ---------
 
 Listings not matched with any product : XXXX
+It's normal that 
+
 Listing matched with more than 1 product : XXXX
 
 (total listings : 20196, total products : 743)
