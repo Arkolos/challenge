@@ -48,7 +48,7 @@ def initSql(products_file:String, listings_file:String) =
     bound + before + regexp + after + bound + after_bound
   }
 
-  val productname_formate: (String => String) = (entry: String) =>
+  val productname_format: (String => String) = (entry: String) =>
   {
     //sometime, diferent product_name seems to correspond to the same product. We add a column to handle this case
     if (entry == "Canon_EOS_Rebel_T2i" || entry == "Canon_Kiss_X4") "Canon_EOS_550D"
@@ -57,7 +57,7 @@ def initSql(products_file:String, listings_file:String) =
     else entry
   }
 
-  val listings_manufacturer_formate: (String => String) = (entry: String) =>
+  val listings_manufacturer_format: (String => String) = (entry: String) =>
   {
     val sp = entry.split(" ")
     if (sp.length >= 2 && sp(1).toLowerCase() == "kodak")  "kodak"
@@ -68,8 +68,8 @@ def initSql(products_file:String, listings_file:String) =
   }
 
   val sqlfunc_regexp = udf(regexp_searched_create)
-  val sqlfunc_manufacturer = udf(listings_manufacturer_formate)
-  val sqlfunc_productname = udf(productname_formate)
+  val sqlfunc_manufacturer = udf(listings_manufacturer_format)
+  val sqlfunc_productname = udf(productname_format)
 
   val products_fromfile = sqlContext.read.json(products_file)
   val products =  products_fromfile.withColumn("regexp_searched", sqlfunc_regexp(col("model"), col("family")))
