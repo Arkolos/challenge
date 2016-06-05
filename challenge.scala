@@ -2,6 +2,8 @@ import org.json4s._
 import org.json4s.JsonDSL._
 import org.json4s.jackson.JsonMethods._
 
+case class Listing(currency:String,manufacturer:String,price:String,title:String)
+
 val join_on = "listings.manufacturer_formatted = LOWER(products.manufacturer) AND LOWER(listings.title) REGEXP products.regexp_searched"
 
 /* 
@@ -111,13 +113,11 @@ def encodeJson(src: AnyRef): JValue = {
     Extraction.decompose(src)
 }
 
-case class Listing(currency:String,manufacturer:String,price:String,title:String)
-
 initSql("/Users/Arkolos/Dropbox2/Dropbox/Prog/sparc/challenge_sortable/products.txt", "/Users/Arkolos/Dropbox2/Dropbox/Prog/sparc/challenge_sortable/listings.txt" )
 println ("no matched "+ countNotMatchedListings())
 println ("matched twice "+ countMatchedTwiceListings())
 
 val results_grouped = getResult()
 val results_json =  results_grouped.map(p => compact(render(encodeJson( ("product_name"-> p._1 ) ~ ("listings" -> encodeJson(p._2))  ))))
-results_json.saveAsTextFile("/Users/Arkolos/Dropbox2/Dropbox/Prog/sparc/challenge_sortable/result-json-17")
+//results_json.saveAsTextFile("/Users/Arkolos/Dropbox2/Dropbox/Prog/sparc/challenge_sortable/result-json-18")
 
