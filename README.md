@@ -16,14 +16,14 @@ To run the solution :
 
 - clone this repository
 
-- copy the products.txt and listings.txt files from http://sortable.com/challenge/ in the repository directory, next to the "challenge.scala" file
+- copy the products.txt and listings.txt files from http://sortable.com/challenge/ in the repository directory, next to the "challenge.scala" and "custom_fields.scala" files
 
 - run :   
 ```
 /path/to/your/spark-shell  --packages com.databricks:spark-csv_2.11:1.3.0 -i challenge.scala
 ```
 
-A "result" directory is created in you current directory. There should have no errors. When it's finished, you should get the spark prompt again.
+There should have no errors. A "result" directory is created in you current directory. When it's finished, you should get the spark prompt again.
 
 - Exit the Spark shell (type the "exit" command) and run :   
 ```
