@@ -3,9 +3,9 @@ Sortable coding challenge
 
 Subject hear : http://sortable.com/challenge/
 
-"
-The goal of the project is to match product listings from a 3rd party retailer, e.g. “Nikon D90 12.3MP Digital SLR Camera (Body Only)” against a set of known products, e.g. “Nikon D90”.
-"
+
+> The goal of the project is to match product listings from a 3rd party retailer, e.g. “Nikon D90 12.3MP Digital SLR Camera (Body Only)” against a set of known products, e.g. “Nikon D90”.
+
 
 How to run
 ----------
@@ -18,14 +18,16 @@ To run the solution :
 
 - copy the products.txt and listings.txt files from http://sortable.com/challenge/ in the repository directory, next to the "challenge.scala" file
 
-- run :
-```/path/to/your/spark-shell  --packages com.databricks:spark-csv_2.11:1.3.0 -i challenge.scala
+- run :   
+```
+/path/to/your/spark-shell  --packages com.databricks:spark-csv_2.11:1.3.0 -i challenge.scala
 ```
 
 A "result" directory is created in you current directory. There should have no errors. When it's finished, you should get the spark prompt again.
 
-- Exit the Spark shell (type the "exit" command) and run :
-```cat result/part-* > result.txt
+- Exit the Spark shell (type the "exit" command) and run :   
+```
+cat result/part-* > result.txt
 ```
 
 The excepted result is in "result.txt" !
@@ -51,10 +53,10 @@ Then, the result are grouped according to the "product_name_formatted" column an
 Results :
 ---------
 
-Listings not matched with any product : 11394
+Listings not matched with any product : 11394   
 It's normal that a big number of listings don't have a product matching, since not every existing model is listed in product 
 
-Listing matched with more than 1 product : 15
+Listing matched with more than 1 product : 15   
 Mostly listings that are about several products, eg. battery and kit for several cameras. 
 
 (total listings : 20196, total products : 743)
