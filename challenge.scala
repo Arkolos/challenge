@@ -1,3 +1,8 @@
+/*
+NOTE : the "custom_fields.scala" file need to be loaded before this one.
+
+*/
+
 import org.json4s._
 import org.json4s.JsonDSL._
 import org.json4s.jackson.JsonMethods._
@@ -6,7 +11,6 @@ case class Listing(currency:String,manufacturer:String,price:String,title:String
 
 val join_on = "listings.manufacturer_formatted = LOWER(products.manufacturer) AND LOWER(listings.title) REGEXP products.regexp_searched"
 
-:load custom_fields.scala //functions used to calculate the customs fields
 /* 
   initSql load the .txt files, register them as tables in sqlContext, and add the customs columns  
 */
@@ -22,7 +26,7 @@ def initSql(products_file:String, listings_file:String) =
   - manufacturer_formatted : the manufacturer we will try to match with the product manufacturer
   */
 
-  val sqlfunc_regexp = udf(regexp_searched_create)
+  val sqlfunc_regexp = udf(regexp_searched_create)//function defined in custom_fields.scala
   val sqlfunc_manufacturer = udf(listings_manufacturer_format)
   val sqlfunc_productname = udf(productname_format)
 
@@ -78,5 +82,5 @@ val results_json =  results_grouped.map(p => compact(render(encodeJson( ("produc
 results_json.saveAsTextFile("result")
 
 /* Uncomment to display the stats */
-// println ("no matched "+ countNotMatchedListings())
-// println ("matched twice "+ countMatchedTwiceListings())
+ // println ("no matched "+ countNotMatchedListings())
+ // println ("matched twice "+ countMatchedTwiceListings())

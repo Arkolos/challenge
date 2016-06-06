@@ -20,7 +20,7 @@ To run the solution :
 
 - run :   
 ```
-/path/to/your/spark-shell  --packages com.databricks:spark-csv_2.11:1.3.0 -i challenge.scala
+/path/to/your/spark-shell  --packages com.databricks:spark-csv_2.11:1.3.0 -i custom_fields.scala -i challenge.scala
 ```
 
 There should have no errors. A "result" directory is created in you current directory. When it's finished, you should get the Scala prompt again.
