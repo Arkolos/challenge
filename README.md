@@ -54,7 +54,7 @@ Results :
 ---------
 
 Listings not matched with any product : 11394   
-It's normal that a big number of listings don't have a product matching, since not every existing model is listed in product 
+It's normal that a big number of listings don't have a product matching, since not every existing model of camera is listed in products
 
 Listing matched with more than 1 product : 15   
 Mostly listings that are about several products, eg. battery and kit for several cameras. 
