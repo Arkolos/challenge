@@ -83,25 +83,30 @@ def initSql(products_file:String, listings_file:String) =
   listings.registerTempTable("listings")
 }
 
+/*
+getResult perform the request and group result by product
+*/
+def getResult():org.apache.spark.rdd.RDD[(String, Iterable[Listing])] =
+{
+  val request = "SELECT product_name_formatted,listings.* FROM products join listings on "+ join_on
+
+  val sqlResult = sqlContext.sql(request)
+
+  sqlResult.map(p => (p(0).asInstanceOf[String] , (Listing(p(1).asInstanceOf[String], p(2).asInstanceOf[String], p(3).asInstanceOf[String], p(4).asInstanceOf[String])))).groupByKey()
+}
+
+/* 
+countNotMatchedListings and countMatchedTwiceListings are used to get the matching stats
+ */
 def countNotMatchedListings():Long = 
 {
   val sqlRequest_notMatched = "SELECT COUNT(*) AS nb FROM products RIGHT JOIN listings ON "+ join_on +" WHERE product_name IS NULL"
   sqlContext.sql(sqlRequest_notMatched).first()(0).asInstanceOf[Long]
 }
-
 def countMatchedTwiceListings():Long =
 {
   val sqlRequest_dual = "SELECT count(DISTINCT products.product_name_formatted) AS nb, listings.title, listings.manufacturer FROM products  join listings on "+ join_on +" group by listings.title,listings.manufacturer having nb > 1"
   sqlContext.sql(sqlRequest_dual).count
-}
-
-def getResult():org.apache.spark.rdd.RDD[(String, Iterable[Listing])] =
-{
-  val request = "SELECT product_name,listings.* FROM products join listings on "+ join_on
-
-  val sqlResult = sqlContext.sql(request)
-
-  sqlResult.map(p => (p(0).asInstanceOf[String] , (Listing(p(1).asInstanceOf[String], p(2).asInstanceOf[String], p(3).asInstanceOf[String], p(4).asInstanceOf[String])))).groupByKey()
 }
 
 def encodeJson(src: AnyRef): JValue = {
@@ -113,11 +118,14 @@ def encodeJson(src: AnyRef): JValue = {
     Extraction.decompose(src)
 }
 
-initSql("/Users/Arkolos/Dropbox2/Dropbox/Prog/sparc/challenge_sortable/products.txt", "/Users/Arkolos/Dropbox2/Dropbox/Prog/sparc/challenge_sortable/listings.txt" )
-println ("no matched "+ countNotMatchedListings())
-println ("matched twice "+ countMatchedTwiceListings())
+initSql("products.txt", "listings.txt" )
 
 val results_grouped = getResult()
 val results_json =  results_grouped.map(p => compact(render(encodeJson( ("product_name"-> p._1 ) ~ ("listings" -> encodeJson(p._2))  ))))
-//results_json.saveAsTextFile("/Users/Arkolos/Dropbox2/Dropbox/Prog/sparc/challenge_sortable/result-json-18")
+results_json.saveAsTextFile("result")
 
+/* Uncomment to display the stats */
+// println ("no matched "+ countNotMatchedListings())
+// println ("matched twice "+ countMatchedTwiceListings())
+
+println("If there was no errors, your \"result\" should have been created !")

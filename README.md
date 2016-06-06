@@ -14,15 +14,29 @@ You need Spark with Scala and the package spark-csv
 
 The program then create the file XXX and display how many lines 
 
-This project had been tested with Spark  1.6.1, Scala 2.10.5, and spark-csv 1.3.0. It is launch with this command :
-./bin/spark-shell --packages com.databricks:spark-csv_2.11:1.3.0 XXX
+This project had been tested with Spark  1.6.1, Scala 2.10.5, and spark-csv 1.3.0. To run it:
+
+- clone this repository
+
+- copy the products.txt and listings.txt files from http://sortable.com/challenge/ in the repository directory, next to the "challenge.scala" file
+
+- run :
+/path/to/your/spark-shell  --packages com.databricks:spark-csv_2.11:1.3.0 -i challenge.scala 
+
+A "result" directory is created in you current directory. There should have no errors. When it's finished, you should get the spark prompt again.
+
+- Exit the Spark shell (type the "exit" command) and run :
+cat result/part-* > result.txt
+
+The excepted result is in result.txt !
+
 
 How does it works :
 -------------------
 
 The project first creates for each product a REGEXP, mostly based on the "model" field of the product. For example, for a model "A3000 IS" , the regexp will be "[^-_a-z0-9]a[-_ ]?3000[-_ ]?is[^-_a-z0-9]". It is this regexp that will be search in the listings title.
 
-Some different product_name seems correspond to the same product (see the "Note" part bellow) so another custom product_name is created
+Some different product_name correspond to the same product (see the "Note" part bellow) so another custom product_name is created.
 
 To match, a jointure is made between the "products" and "listings" table using this calculated "regexp_searched" field and the "manufacturer" one. The sql query is :
 
