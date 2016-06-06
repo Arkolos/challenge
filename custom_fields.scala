@@ -33,7 +33,7 @@ def regexp_searched_create: ((String, String) => String) = (model: String, famil
 
 def productname_format: (String => String) = (entry: String) =>
 {
-  //sometime, diferent product_name seems to correspond to the same product. We add a column to handle this case
+  //sometimes, different product_name seems to correspond to the same product. We add a column to handle this case
   if (entry == "Canon_EOS_Rebel_T2i" || entry == "Canon_Kiss_X4") "Canon_EOS_550D"
   else if (entry == "Canon_EOS_Rebel_T1i") "Canon_EOS_500D"
   else if (entry == "Samsung-SL202") "Samsung_SL202"
