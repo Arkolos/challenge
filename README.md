@@ -40,12 +40,10 @@ Some different product_name correspond to the same product (see the "Note" part 
 
 To match, a jointure is made between the "products" and "listings" table using this calculated "regexp_searched" field and the "manufacturer" one. The sql query is :
 
-SELECT product_name,listings.* FROM products
+SELECT product_name_formatted,listings.* FROM products
 join listings on listings.manufacturer_formated = LOWER(products.manufacturer) AND LOWER(listings.title) REGEXP products.regexp_searched
 
-Then we remove the 15 listings that matches with several products.
-
-Then, the result are grouped according to the "product_name" and displayed in Json.
+Then, the result are grouped according to the "product_name_formatted" column and displayed in Json.
 
 
 Results :
@@ -54,8 +52,8 @@ Results :
 Listings not matched with any product : 11394
 It's normal that a big number of listings don't have a product matching, since not every existing model is listed in product 
 
-Listing matched with more than 1 product (before we remove them) : 15
-Notably listings about battery and kit for several cameras. 
+Listing matched with more than 1 product : 15
+Mostly listings that are about several products, eg. battery and kit for several cameras. 
 
 (total listings : 20196, total products : 743)
 
@@ -78,9 +76,11 @@ Samsung-SL202 and Samsung_SL202
 Idea of improvements
 ====================
 
-We could replace the sql requests by a lower-level treatment. It could :
+- We could remove from the result all the listings that match with more than one product 
 
-- improve time performances by controling better what is really done
+- We could replace the sql requests by a lower-level treatment. It could :
 
-- allow more flexibility to add new features (eg : for now it is not possible to set priority for products or to realize treatments not supported by sql)
+    - improve time performances by controling better what is really done
+
+    - allow more flexibility to add new features (eg : for now it is not possible to set priority for products or to realize treatments not supported by sql)
 

@@ -88,7 +88,7 @@ getResult perform the request and group result by product
 */
 def getResult():org.apache.spark.rdd.RDD[(String, Iterable[Listing])] =
 {
-  val request = "SELECT product_name_formatted,listings.* FROM products join listings on "+ join_on
+  val request = "SELECT product_name_formatted,listings.* FROM products JOIN listings on "+ join_on
 
   val sqlResult = sqlContext.sql(request)
 
@@ -105,7 +105,7 @@ def countNotMatchedListings():Long =
 }
 def countMatchedTwiceListings():Long =
 {
-  val sqlRequest_dual = "SELECT count(DISTINCT products.product_name_formatted) AS nb, listings.title, listings.manufacturer FROM products  join listings on "+ join_on +" group by listings.title,listings.manufacturer having nb > 1"
+  val sqlRequest_dual = "SELECT count(DISTINCT products.product_name_formatted) AS nb, listings.title, listings.manufacturer FROM products JOIN listings on "+ join_on +" GROUP BY listings.title,listings.manufacturer HAVING nb > 1"
   sqlContext.sql(sqlRequest_dual).count
 }
 
@@ -127,5 +127,3 @@ results_json.saveAsTextFile("result")
 /* Uncomment to display the stats */
 // println ("no matched "+ countNotMatchedListings())
 // println ("matched twice "+ countMatchedTwiceListings())
-
-println("If there was no errors, your \"result\" should have been created !")
