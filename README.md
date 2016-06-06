@@ -38,7 +38,7 @@ How does it works :
 
 The solution first creates for each product a REGEXP, mostly based on the "model" field of the product. For example, for a model "A3000 IS" , the regexp will be "[^-_a-z0-9]a[-_ ]?3000[-_ ]?is[^-_a-z0-9]". This regexp  will be searched in the listings title.
 
-Some different product_name correspond to the same product (see the "Note" part bellow) so another custom product_name column is created.
+Some different "product_name" correspond to the same product (see the "Note" part bellow) so a custom product_name column is created.
 
 To match, a jointure is made between the "products" and "listings" table using the previously calculated "regexp_searched" field and the "manufacturer" one. The sql query is :
 
