@@ -23,7 +23,7 @@ To run the solution :
 /path/to/your/spark-shell  --packages com.databricks:spark-csv_2.11:1.3.0 -i challenge.scala
 ```
 
-There should have no errors. A "result" directory is created in you current directory. When it's finished, you should get the spark prompt again.
+There should have no errors. A "result" directory is created in you current directory. When it's finished, you should get the Scala prompt again.
 
 - Exit the Spark shell (type the "exit" command) and run :   
 ```
